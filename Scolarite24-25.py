@@ -2,19 +2,19 @@ scolarite = {"Maternelle": 100000, "1": 90000,
              "2": 90000, "3": 95000, "4": 95000, 
              "5": 120000, "6": 160000, "7": 120000,
              "8": 120000, "9": 140000, "10": 170000,
-             "11": 150000}
+             "11": 150000, "12": 150000}
 
 inscription = {"Maternelle": 60000, "1": 60000,
              "2": 60000, "3": 60000, "4": 60000, 
              "5": 60000, "6": 60000, "7": 60000,
              "8": 60000, "9": 60000, "10": 60000,
-             "11": 60000} 
+             "11": 60000, '12': 60000} 
 
 reinscription = {"Maternelle": 50000, "1": 50000,
              "2": 50000, "3": 50000, "4": 50000, 
              "5": 50000, "6": 50000, "7": 50000,
              "8": 50000, "9": 50000, "10": 50000,
-             "11": 50000} 
+             "11": 50000, "12": 50000} 
 
 def mensuel(classe):
     return scolarite[classe]
@@ -85,42 +85,75 @@ if __name__ == "__main__":
             print(students)
             print("\n")
 
+            #Gestion de l'affichage console
+
+            #Entête Eleve, Eleve1, etc
+            print("{:>15s} |".format(""), end=" ") #Libéllé Eleve
             i=0
             while i < len(students):
-                print("{:>8s} |".format("Eleve "+str(i+1)), end=" ")
+                print("{:>10s} |".format("Eleve "+str(i+1)), end=" ")
                 i+=1
-            
-            #Afficher Ins ou Réins
+
+            print("{:>10s} |".format(""), end=" ")
             print("\n")
+
+            #Afficher La classe de l'élève
+            print("{:>15s} |".format("Classe"), end=" ") #Libéllé Classe
+            for student in students:
+                print("{:>10s} |".format(student["classe"] + 'e A'), end=" ")
+            
+            print("{:>10s} |".format("Total"), end=" ")
+            print("\n")
+
+            #Afficher Catégories (Ins ou Réins)
+            print("{:>15s} |".format("Catégories"), end=" ") #Libéllé Catégories
             for student in students:
                 if student["ins_reins"] == "1":
-                    print("{:>8s} |".format("Ins"), end=" ")
+                    print("{:>10s} |".format("Ins"), end=" ")
                 elif student["ins_reins"] == "2":
-                    print("{:>8s} |".format("Réins"), end=" ")
-                
+                    print("{:>10s} |".format("Réins"), end=" ")
+
+            print("{:>10s} |".format(""), end=" ")
+            print("\n")   
             
             #Scolarité
-            print("\n")
+            print("{:>15s} |".format("Scolarité"), end=" ") #Libéllé Scolarité
             for student in students:
-                print("{:>8d} |".format(mois(student["classe"], student["nb_mois"])), end=" ")
+                print("{:>10d} |".format(mois(student["classe"], student["nb_mois"])), end=" ")  
+
+            scolarite_sum = sum([mois(student["classe"], student["nb_mois"]) for student in students]) #Total Scolarité 
+            print("{:>10d} |".format(scolarite_sum), end=" ")      
+            print("\n")
+
 
             #Inscription/Reinscription
-            print("\n")
+            print("{:>15s} |".format("Ins / Réins"), end=" ") #Libéllé Ins / Réins
             for student in students:
                 if student["ins_reins"] == "1":
-                    print("{:>8d} |".format(inscription[student["classe"]]), end=" ")
+                    print("{:>10d} |".format(inscription[student["classe"]]), end=" ")
                 elif student["ins_reins"] == "2":
-                    print("{:>8d} |".format(reinscription[student["classe"]]), end=" ")
-                
-            #Scolarité+Ins/Reins
+                    print("{:>10d} |".format(reinscription[student["classe"]]), end=" ")
+
+            ins_reins_sum = sum([inscription[student["classe"]] for student in students if student["ins_reins"]=="1"] +
+                                [reinscription[student["classe"]] for student in students if student["ins_reins"]=="2"]) #Total Ins/Réins
+            print("{:>10d} |".format(ins_reins_sum), end=" ")  
             print("\n")
+
+                
+            #Scolarité+Ins/Reins => Total
+            print("{:>15s} |".format("Total"), end=" ") #Libéllé Total par colonne
+            
             for student in students:
                 if student["ins_reins"] == "1":
-                    print("{:>8d} |".format(mois(student["classe"], student["nb_mois"])+
+                    print("{:>10d} |".format(mois(student["classe"], student["nb_mois"])+
                                                     inscription[student["classe"]]), end=" ")
                 elif student["ins_reins"] == "2":
-                    print("{:>8d} |".format(mois(student["classe"], student["nb_mois"])+
+                    print("{:>10d} |".format(mois(student["classe"], student["nb_mois"])+
                                                     reinscription[student["classe"]]), end=" ")
+                    
+            
+            print("{:>10d} |".format(scolarite_sum+ins_reins_sum), end=" ")  
+            print("\n")
 
 
             #Total Scolarite   
@@ -138,16 +171,54 @@ if __name__ == "__main__":
             print("\n")
             print("Scolarité + Ins/Réins==> {}".format(scolarite_sum+ins_reins_sum))
 
-            #Réduction de 5% sur les frais annuels (9 mois)
-            test = True
-            for student in students:
-                if student["nb_mois"] != 9:
-                    test = False
-                    break
+        
+            #Réduction plus de 4 ou payment annuelle
+            #Determine le type de réduction
+            typeReduction: str = ''
             
-            if test == True:
+            typeNeufMois: bool = True
+            for student in students:
+                if student['nb_mois'] != 9:
+                    typeNeufMois = False
+                    break
+
+            typePlusDeQuatre: bool = False
+            typePlusDeQuatre = len(students) >= 5
+
+            
+            if typeNeufMois:
+                typeReduction = 'neufMois'
+            elif typePlusDeQuatre:
+                typeReduction = 'plusDeQuatre'
+
+            #Calcul de la reduction en fonction du type
+            reduction: float = 0.
+            if typePlusDeQuatre == True and typeNeufMois == True:
                 print("\n\n")
                 print("\t----------------------------------")
+                print("\tRéduction des frais de scolarité\n")
                 reduction = (scolarite_sum*5)/100
-                print("Reduction 5% sur scolarité == {}".format(reduction))
-                print("Nouvelle Scolarité + Ins/Réins == {}".format((scolarite_sum+ins_reins_sum)-reduction))
+                print("Reduction 5% sur scolarité = {}".format(reduction))
+                print("Nouvelle Scolarité = {}".format(scolarite_sum-reduction))
+                print("Nouvelle Scolarité + Ins/Réins = {}".format((scolarite_sum+ins_reins_sum)-reduction))
+            elif typeReduction == 'neufMois':
+                print("\n\n")
+                print("\t----------------------------------")
+                print("\tRéduction dû au paiment annuelle\n")
+                reduction = (scolarite_sum*5)/100
+                print("Reduction 5% sur scolarité = {}".format(reduction))
+                print("Nouvelle Scolarité = {}".format(scolarite_sum-reduction))
+                print("Nouvelle Scolarité + Ins/Réins ={}".format((scolarite_sum+ins_reins_sum)-reduction))
+            elif typeReduction == 'plusDeQuatre':
+                print("\n\n")
+                print("\t----------------------------------")
+                print("\tRéduction dû au fait d'avoir plus de 4 enfants\n")
+                sumScolMensuel: float = 0.
+                for student in students:
+                    sumScolMensuel += scolarite[student['classe']]
+                reduction = ((sumScolMensuel*9)*5)/100
+                
+                print("Reduction 5% sur scolarité = {}".format(reduction))
+                
+
+
